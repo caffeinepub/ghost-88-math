@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/assets/fonts/GeistMono[wght].woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Outfit";
+  src: url("/assets/fonts/Outfit[wght].woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.375rem;
+
+    /* Pure black gaming theme - always dark */
+    --background: 0 0 0;
+    --foreground: 1 0 0;
+    --card: 0.07 0 0;
+    --card-foreground: 1 0 0;
+    --popover: 0.1 0 0;
+    --popover-foreground: 1 0 0;
+    --primary: 0.82 0.18 160;
+    --primary-foreground: 0 0 0;
+    --secondary: 0.12 0 0;
+    --secondary-foreground: 1 0 0;
+    --muted: 0.1 0 0;
+    --muted-foreground: 0.52 0.01 200;
+    --accent: 0.82 0.18 160;
+    --accent-foreground: 0 0 0;
+    --destructive: 0.62 0.24 27;
+    --destructive-foreground: 0.985 0 0;
+    --border: 0.18 0.005 200;
+    --input: 0.12 0.005 200;
+    --ring: 0.82 0.18 160;
+
+    --chart-1: 0.82 0.18 160;
+    --chart-2: 0.75 0.14 190;
+    --chart-3: 0.65 0.2 130;
+    --chart-4: 0.7 0.16 80;
+    --chart-5: 0.6 0.22 300;
+
+    --sidebar: 0.05 0 0;
+    --sidebar-foreground: 1 0 0;
+    --sidebar-primary: 0.82 0.18 160;
+    --sidebar-primary-foreground: 0 0 0;
+    --sidebar-accent: 0.12 0 0;
+    --sidebar-accent-foreground: 1 0 0;
+    --sidebar-border: 0.18 0.005 200;
+    --sidebar-ring: 0.82 0.18 160;
+
+    /* Neon glow custom tokens */
+    --neon-green: oklch(0.82 0.18 160);
+    --neon-cyan: oklch(0.78 0.15 190);
+    --glow-sm: 0 0 8px oklch(0.82 0.18 160 / 0.4);
+    --glow-md: 0 0 16px oklch(0.82 0.18 160 / 0.5), 0 0 32px oklch(0.82 0.18 160 / 0.2);
+    --glow-border: 0 0 0 1px oklch(0.82 0.18 160 / 0.6), 0 0 12px oklch(0.82 0.18 160 / 0.2);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Outfit", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .font-mono-display {
+    font-family: "Geist Mono", monospace;
+  }
+
+  .neon-border {
+    border: 1px solid oklch(0.82 0.18 160 / 0.4);
+    box-shadow: var(--glow-border);
+  }
+
+  .neon-text {
+    color: var(--neon-green);
+    text-shadow: 0 0 10px oklch(0.82 0.18 160 / 0.6);
+  }
+
+  .card-hover {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  }
+
+  .card-hover:hover {
+    border-color: oklch(0.82 0.18 160 / 0.7);
+    box-shadow: var(--glow-md);
+    transform: translateY(-2px);
+  }
+
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Subtle scan-line texture for atmosphere */
+  .scanline-bg::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      oklch(0 0 0 / 0.03) 2px,
+      oklch(0 0 0 / 0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+}
