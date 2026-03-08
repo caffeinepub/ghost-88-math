@@ -12,6 +12,124 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+// ─── Particles Background ────────────────────────────────────────────────────
+function ParticlesBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    interface Particle {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      radius: number;
+      baseOpacity: number;
+      opacity: number;
+      twinkleSpeed: number;
+      twinkleDir: number;
+      twinkleTimer: number;
+    }
+
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    const COUNT = 80;
+    const particles: Particle[] = [];
+
+    function createParticle(): Particle {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.2 + Math.random() * 0.4;
+      const baseOpacity = 0.15 + Math.random() * 0.35;
+      return {
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        radius: 1 + Math.random() * 1.5,
+        baseOpacity,
+        opacity: baseOpacity,
+        twinkleSpeed: 0.005 + Math.random() * 0.015,
+        twinkleDir: Math.random() > 0.5 ? 1 : -1,
+        twinkleTimer: Math.random() * 200,
+      };
+    }
+
+    for (let i = 0; i < COUNT; i++) {
+      particles.push(createParticle());
+    }
+
+    let rafId: number;
+
+    function draw() {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, width, height);
+
+      for (const p of particles) {
+        // Move
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Wrap around edges
+        if (p.x < -5) p.x = width + 5;
+        if (p.x > width + 5) p.x = -5;
+        if (p.y < -5) p.y = height + 5;
+        if (p.y > height + 5) p.y = -5;
+
+        // Twinkle
+        p.twinkleTimer += p.twinkleSpeed;
+        p.opacity = p.baseOpacity + Math.sin(p.twinkleTimer) * 0.15;
+        p.opacity = Math.max(0.05, Math.min(0.55, p.opacity));
+
+        // Draw
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${p.opacity})`;
+        ctx.fill();
+      }
+
+      rafId = requestAnimationFrame(draw);
+    }
+
+    draw();
+
+    function handleResize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      if (!canvas) return;
+      canvas.width = width;
+      canvas.height = height;
+    }
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: "fixed",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        zIndex: -1,
+        pointerEvents: "none",
+      }}
+    />
+  );
+}
+
 // ─── Static game data ────────────────────────────────────────────────────────
 interface GameEntry {
   id: number;
@@ -1177,7 +1295,7 @@ function GameCard({
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
       {/* Game thumbnail image */}
-      <div className="relative h-20 overflow-hidden bg-zinc-900">
+      <div className="relative h-20 overflow-hidden bg-black/80">
         <img
           src={game.thumbnail}
           alt={game.name}
@@ -1312,7 +1430,7 @@ function GameModal({ game, isLiked, onToggleLike, onClose }: GameModalProps) {
       className="fixed inset-0 z-50 bg-black flex flex-col"
     >
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-2 bg-zinc-950 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-between px-4 py-2 bg-black border-b border-white/10 shrink-0">
         <span className="font-semibold text-white text-sm truncate max-w-xs">
           {game.name}
         </span>
@@ -1330,7 +1448,7 @@ function GameModal({ game, isLiked, onToggleLike, onClose }: GameModalProps) {
               className={
                 isLiked
                   ? "text-red-500 fill-red-500"
-                  : "text-zinc-400 hover:text-red-400"
+                  : "text-white/60 hover:text-red-400"
               }
             />
           </button>
@@ -1342,7 +1460,7 @@ function GameModal({ game, isLiked, onToggleLike, onClose }: GameModalProps) {
             className="p-2 rounded hover:bg-white/10 transition-colors"
             aria-label="Enter fullscreen"
           >
-            <Maximize2 size={16} className="text-zinc-400 hover:text-white" />
+            <Maximize2 size={16} className="text-white/60 hover:text-white" />
           </button>
           {/* Close button */}
           <button
@@ -1352,7 +1470,7 @@ function GameModal({ game, isLiked, onToggleLike, onClose }: GameModalProps) {
             className="p-2 rounded hover:bg-white/10 transition-colors"
             aria-label="Close game"
           >
-            <X size={16} className="text-zinc-400 hover:text-white" />
+            <X size={16} className="text-white/60 hover:text-white" />
           </button>
         </div>
       </div>
@@ -1387,12 +1505,12 @@ function PopularBar({ onGameClick }: PopularBarProps) {
   return (
     <div
       data-ocid="popular_bar.section"
-      className="sticky top-[57px] z-30 border-b border-border bg-zinc-950/95 backdrop-blur-sm overflow-hidden"
+      className="sticky top-0 z-50 border-b border-white/10 bg-black/95 backdrop-blur-sm overflow-hidden"
       style={{ height: "52px" }}
     >
       <div className="flex items-center h-full">
         {/* Static "Popular" label */}
-        <div className="flex items-center gap-1.5 shrink-0 px-3 h-full border-r border-border bg-zinc-950 z-10">
+        <div className="flex items-center gap-1.5 shrink-0 px-3 h-full border-r border-white/10 bg-black z-10">
           <Flame size={13} className="text-orange-400 shrink-0" />
           <span className="text-[11px] font-semibold uppercase tracking-widest text-orange-400 whitespace-nowrap">
             Popular
@@ -1402,9 +1520,9 @@ function PopularBar({ onGameClick }: PopularBarProps) {
         {/* Scrolling track */}
         <div className="popular-bar-track flex-1 overflow-hidden h-full flex items-center relative">
           {/* Left fade mask */}
-          <div className="absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none" />
+          <div className="absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
           {/* Right fade mask */}
-          <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
 
           <div className="animate-marquee flex items-center gap-3 pl-3">
             {items.map((game, i) => (
@@ -1413,11 +1531,11 @@ function PopularBar({ onGameClick }: PopularBarProps) {
                 type="button"
                 data-ocid={`popular_bar.item.${(i % popularGames.length) + 1}`}
                 onClick={() => onGameClick(game)}
-                className="flex items-center gap-2 shrink-0 px-2.5 py-1 rounded border border-zinc-800 bg-zinc-900/60 hover:border-primary/50 hover:bg-zinc-800/80 transition-all duration-150 group"
+                className="flex items-center gap-2 shrink-0 px-2.5 py-1 rounded border border-white/10 bg-white/5 hover:border-primary/50 hover:bg-white/10 transition-all duration-150 group"
                 aria-label={`Play ${game.name}`}
               >
                 {/* Thumbnail */}
-                <div className="relative w-7 h-7 rounded overflow-hidden shrink-0 bg-zinc-800">
+                <div className="relative w-7 h-7 rounded overflow-hidden shrink-0 bg-white/10">
                   <img
                     src={game.thumbnail}
                     alt={game.name}
@@ -1429,7 +1547,7 @@ function PopularBar({ onGameClick }: PopularBarProps) {
                   />
                 </div>
                 {/* Game name */}
-                <span className="text-[11px] font-medium text-zinc-300 group-hover:text-white transition-colors whitespace-nowrap max-w-[100px] truncate">
+                <span className="text-[11px] font-medium text-white group-hover:text-white transition-colors whitespace-nowrap max-w-[100px] truncate">
                   {game.name}
                 </span>
                 {/* HOT badge */}
@@ -1496,16 +1614,20 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-background scanline-bg">
+      <ParticlesBackground />
       <div className="relative z-10">
+        {/* ── Popular Bar ────────────────────────────────────────── */}
+        <PopularBar onGameClick={handleGameClick} />
+
         {/* ── Header ─────────────────────────────────────────────── */}
-        <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
+        <header className="sticky top-[52px] z-40 border-b border-border bg-black/95 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex items-center gap-3 shrink-0">
               <div className="flex flex-col">
                 <h1 className="font-mono-display text-lg font-bold text-white tracking-tight leading-tight">
                   Ghost-88.Math
                 </h1>
-                <p className="text-[10px] text-muted-foreground leading-tight">
+                <p className="text-[10px] text-white/70 leading-tight">
                   Level up your math skills.
                 </p>
               </div>
@@ -1516,7 +1638,7 @@ export default function App() {
             <div className="relative w-full sm:max-w-xs ml-auto">
               <Search
                 size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60"
               />
               <Input
                 data-ocid="header.search_input"
@@ -1524,14 +1646,11 @@ export default function App() {
                 placeholder="Search games..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-8 text-sm bg-muted border-border focus-visible:ring-primary focus-visible:border-primary/60 placeholder:text-muted-foreground/60"
+                className="pl-9 h-8 text-sm bg-white/5 border-white/10 text-white focus-visible:ring-primary focus-visible:border-primary/60 placeholder:text-white/40"
               />
             </div>
           </div>
         </header>
-
-        {/* ── Popular Bar ────────────────────────────────────────── */}
-        <PopularBar onGameClick={handleGameClick} />
 
         <main className="max-w-6xl mx-auto px-4 py-6 space-y-8">
           {/* ── Recently Played ───────────────────────────────────── */}
