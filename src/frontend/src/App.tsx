@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import {
   Clock,
+  Flame,
   Gamepad2,
   Heart,
   Maximize2,
@@ -1369,6 +1370,82 @@ function GameModal({ game, isLiked, onToggleLike, onClose }: GameModalProps) {
   );
 }
 
+// ─── Popular Bar ─────────────────────────────────────────────────────────────
+interface PopularBarProps {
+  onGameClick: (game: GameEntry) => void;
+}
+
+function PopularBar({ onGameClick }: PopularBarProps) {
+  const popularGames = useMemo(
+    () => [...GAMES].sort((a, b) => b.plays - a.plays).slice(0, 12),
+    [],
+  );
+
+  // Duplicate items so the marquee loops seamlessly
+  const items = [...popularGames, ...popularGames];
+
+  return (
+    <div
+      data-ocid="popular_bar.section"
+      className="sticky top-[57px] z-30 border-b border-border bg-zinc-950/95 backdrop-blur-sm overflow-hidden"
+      style={{ height: "52px" }}
+    >
+      <div className="flex items-center h-full">
+        {/* Static "Popular" label */}
+        <div className="flex items-center gap-1.5 shrink-0 px-3 h-full border-r border-border bg-zinc-950 z-10">
+          <Flame size={13} className="text-orange-400 shrink-0" />
+          <span className="text-[11px] font-semibold uppercase tracking-widest text-orange-400 whitespace-nowrap">
+            Popular
+          </span>
+        </div>
+
+        {/* Scrolling track */}
+        <div className="popular-bar-track flex-1 overflow-hidden h-full flex items-center relative">
+          {/* Left fade mask */}
+          <div className="absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none" />
+          {/* Right fade mask */}
+          <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
+
+          <div className="animate-marquee flex items-center gap-3 pl-3">
+            {items.map((game, i) => (
+              <button
+                key={`${game.id}-${i}`}
+                type="button"
+                data-ocid={`popular_bar.item.${(i % popularGames.length) + 1}`}
+                onClick={() => onGameClick(game)}
+                className="flex items-center gap-2 shrink-0 px-2.5 py-1 rounded border border-zinc-800 bg-zinc-900/60 hover:border-primary/50 hover:bg-zinc-800/80 transition-all duration-150 group"
+                aria-label={`Play ${game.name}`}
+              >
+                {/* Thumbnail */}
+                <div className="relative w-7 h-7 rounded overflow-hidden shrink-0 bg-zinc-800">
+                  <img
+                    src={game.thumbnail}
+                    alt={game.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                </div>
+                {/* Game name */}
+                <span className="text-[11px] font-medium text-zinc-300 group-hover:text-white transition-colors whitespace-nowrap max-w-[100px] truncate">
+                  {game.name}
+                </span>
+                {/* HOT badge */}
+                <span className="flex items-center gap-0.5 text-[9px] font-bold text-orange-400 bg-orange-400/10 border border-orange-400/25 px-1 py-0.5 rounded shrink-0">
+                  <Flame size={8} className="shrink-0" />
+                  HOT
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── App ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [search, setSearch] = useState("");
@@ -1452,6 +1529,9 @@ export default function App() {
             </div>
           </div>
         </header>
+
+        {/* ── Popular Bar ────────────────────────────────────────── */}
+        <PopularBar onGameClick={handleGameClick} />
 
         <main className="max-w-6xl mx-auto px-4 py-6 space-y-8">
           {/* ── Recently Played ───────────────────────────────────── */}

@@ -114,6 +114,20 @@
     display: none;
   }
 
+  /* Popular bar marquee animation */
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .animate-marquee {
+    animation: marquee 40s linear infinite;
+  }
+
+  .popular-bar-track:hover .animate-marquee {
+    animation-play-state: paused;
+  }
+
   /* Subtle scan-line texture for atmosphere */
   .scanline-bg::before {
     content: "";
