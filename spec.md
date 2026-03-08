@@ -1,38 +1,29 @@
 # Ghost-88.Math
 
 ## Current State
-- Site name displayed as "Quiz-88.live" in header and footer
-- Black background with neon green accents
-- Foreground/text uses a muted near-white (oklch 0.94) — not pure white
-- Clicking a game card calls `window.open(game.url, "_blank")` — opens duckmath.org in a new tab
-- No in-app game player, no like functionality, no fullscreen option
+The app is a full-stack unblocked games site with 20 games sourced from quiz-66.pro (which blocks iframe embedding). Each game card shows a locally generated thumbnail image, play count, category badge, like button, and opens the game in an in-app fullscreen modal via iframe. Features include search, category filter tabs, recently played row, and like persistence via localStorage.
 
 ## Requested Changes (Diff)
 
 ### Add
-- In-app game modal / overlay: when a game card is clicked, open a full-viewport modal containing an `<iframe>` embedding the duckmath.org game URL directly
-- Like button on each game card (heart icon) — persists liked state in localStorage; liked games show a filled heart
-- Fullscreen button inside the game modal — calls `iframeRef.requestFullscreen()` to go fullscreen
-- Close button in the game modal to dismiss the iframe and return to the grid
+- All 116 games from quiz-77.pro using the full game list from `assets/data/oyunlar.js`
+- Real thumbnails pulled directly from quiz-77.pro using the `game_image_icon` paths (e.g. `https://quiz-77.pro/g4m3s/slope/slope4.jpeg`)
+- Categories derived from quiz-77.pro's own category data per game
 
 ### Modify
-- Site name: rename "Quiz-88.live" → "Ghost-88.Math" everywhere (header title, footer, localStorage key prefix)
-- Text color: change foreground from near-white to pure white (`oklch(1 0 0)`) — update `--foreground`, `--card-foreground`, `--popover-foreground`, `--secondary-foreground`, `--sidebar-foreground` tokens
-- `handleGameClick`: instead of `window.open`, open the in-app modal; still call `addRecentlyPlayed`
-- Game card: replace `ExternalLink` icon with a heart/like icon; add like toggle button
+- Replace all 20 existing game entries with the 116 games from quiz-77.pro
+- Game URLs updated to `https://quiz-77.pro/<game_url>` (e.g. `https://quiz-77.pro/g4m3s/slope/game.html`)
+- Thumbnail `src` updated to `https://quiz-77.pro/<game_image_icon>` for every game
+- Category list updated to reflect quiz-77.pro categories (Multiplayer, Sport, Puzzle, Clicker, Car, Arcade, Shooting, Classic, IO, Adventure)
+- Play counts reassigned with realistic per-game values
 
 ### Remove
-- `window.open` navigation behavior on game click
-- `ExternalLink` import and usage in `GameCard`
+- All locally generated thumbnail image references (`/assets/generated/thumb-*.png`)
+- quiz-66.pro URLs
 
 ## Implementation Plan
-1. Update CSS tokens in `index.css`: set foreground values to pure white `1 0 0`
-2. In `App.tsx`:
-   - Rename all "Quiz-88.live" text strings to "Ghost-88.Math"
-   - Update localStorage key to `ghost88_recently_played` (keep fallback for old key)
-   - Add `likedGames` state (Set<number>) backed by localStorage
-   - Add `activeGame` state (GameEntry | null) to track which game is open in modal
-   - Replace `handleGameClick` to set `activeGame` (and call `addRecentlyPlayed`)
-   - Update `GameCard` to show a like heart button (stop propagation so card click still opens game)
-   - Build `GameModal` component: full-screen overlay with iframe, close button, fullscreen button, like button
-3. Add `data-ocid` markers for: game modal dialog, modal close button, fullscreen button, like buttons
+1. Replace the GAMES array in App.tsx with all 116 entries from quiz-77.pro's oyunlar.js
+2. For each game: set `url` to `https://quiz-77.pro/<game_url>`, set `thumbnail` to `https://quiz-77.pro/<game_image_icon>`, set `category` from the first entry in `categories` array (or "Arcade" as fallback)
+3. Update CATEGORY_COLORS map to include all new categories from quiz-77.pro
+4. Remove any imports or references to generated thumbnail assets
+5. Keep all other UI/UX (modal, like, fullscreen, recently played, search, category tabs) unchanged
